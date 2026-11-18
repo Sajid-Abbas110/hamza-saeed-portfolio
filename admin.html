@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Portfolio manager</title>
+  <style>
+    :root { --bg:#06120d; --bg2:#0b1f16; --bg3:#123226; --line:rgba(244,239,228,.14); --cream:#f4efe4; --muted:#a3b5aa; --gold:#c9a96a; --danger:#e0765f; --ok:#7fd1a3; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--cream); font:15px/1.55 Inter, system-ui, "Segoe UI", sans-serif; }
+    a { color: var(--gold); }
+    header { position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:14px 24px; background:rgba(6,18,13,.94); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+    header h1 { margin:0; font:600 1.35rem Georgia, serif; }
+    header h1 small { font:400 .8rem Inter, sans-serif; color:var(--muted); margin-left:10px; }
+    .bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    button, .btn { font:inherit; cursor:pointer; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--cream); padding:8px 18px; transition:.2s; text-decoration:none; display:inline-block; }
+    button:hover, .btn:hover { border-color:var(--gold); color:var(--gold); }
+    .primary { background:var(--gold); color:#1a1408; border-color:var(--gold); font-weight:600; }
+    .primary:hover { background:#e3cb92; color:#1a1408; }
+    .danger:hover { border-color:var(--danger); color:var(--danger); }
+    .layout { display:grid; grid-template-columns:320px 1fr; min-height:calc(100vh - 66px); }
+    aside { border-right:1px solid var(--line); padding:18px; background:var(--bg2); }
+    .tabs { display:flex; gap:8px; margin-bottom:14px; }
+    .tabs button { flex:1; }
+    .tabs button.on { background:var(--cream); color:var(--bg); border-color:var(--cream); }
+    .item { display:block; width:100%; text-align:left; border-radius:12px; margin-bottom:8px; padding:10px 14px; }
+    .item.on { border-color:var(--gold); background:rgba(201,169,106,.1); }
+    .item b { display:block; font-weight:600; }
+    .item small { color:var(--muted); }
+    main { padding:26px clamp(16px,3vw,40px) 80px; max-width:980px; }
+    h2 { font:600 1.8rem Georgia, serif; margin:0 0 4px; }
+    h3 { font:600 1.15rem Georgia, serif; margin:30px 0 10px; padding-top:18px; border-top:1px solid var(--line); }
+    .hint { color:var(--muted); font-size:.88rem; margin:0 0 14px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(230px,1fr)); gap:14px; }
+    label { display:grid; gap:5px; font-size:.78rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+    label.wide { grid-column:1/-1; }
+    input, textarea, select { font:inherit; font-size:.95rem; letter-spacing:0; text-transform:none; color:var(--cream); background:rgba(244,239,228,.06); border:1px solid var(--line); border-radius:10px; padding:9px 12px; width:100%; }
+    input:focus, textarea:focus, select:focus { outline:none; border-color:var(--gold); }
+    input[readonly] { opacity:.6; }
+    textarea { min-height:90px; resize:vertical; }
+    option { color:#111; }
+    .rows { display:grid; gap:10px; }
+    .fx { display:grid; grid-template-columns:1.1fr 1.4fr 1fr auto; gap:10px; align-items:end; }
+    .photos { display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:14px; }
+    .ph { border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--bg2); }
+    .ph img { width:100%; height:130px; object-fit:cover; display:block; background:#000; }
+    .ph div { padding:10px; display:grid; gap:8px; }
+    .ph .row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    .ph .row button { padding:3px 10px; font-size:.8rem; }
+    .tag { font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); }
+    .new { color:var(--ok); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; }
+    #toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--cream); color:var(--bg); padding:12px 22px; border-radius:999px; font-weight:600; box-shadow:0 12px 40px rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:.3s; max-width:90vw; text-align:center; }
+    #toast.on { opacity:1; }
+    #toast.err { background:var(--danger); color:#fff; }
+    .banner { border:1px solid var(--line); background:rgba(201,169,106,.08); border-radius:12px; padding:12px 16px; margin-bottom:20px; font-size:.9rem; }
+    .state { font-size:.85rem; color:var(--muted); }
+    .state.dirty { color:var(--gold); }
+    @media (max-width: 860px) { .layout { grid-template-columns:1fr; } aside { border-right:0; border-bottom:1px solid var(--line); } .fx { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Portfolio manager <small>Syed Hamza Ahmed Saeed Arain</small></h1>
+    <div class="bar">
+      <span id="state" class="state">No changes</span>
+      <a class="btn" href="index.html" target="_blank" rel="noopener">View site</a>
+      <button id="btnDownload" type="button">Download portfolio.js</button>
+      <button id="btnSave" type="button" class="primary">Save to project folder</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside>
+      <div class="tabs" role="tablist">
+        <button type="button" data-tab="events" class="on">Events</button>
+        <button type="button" data-tab="certs">Certificates</button>
+      </div>
+      <div id="list"></div>
+    </aside>
+    <main id="editor"></main>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="data/portfolio.js"></script>
+  <script>
+  (() => {
+    "use strict";
+    const HEADER = `/* =====================================================================================================
+   PORTFOLIO DATA: the single place to maintain this website.
+   Add an event or a certificate here and the home page, the event pages and the stats update by themselves.
+   You can edit this file by hand, or use admin.html (open it in a browser) to edit with forms and
+   download a new copy of this file.  Keep this exact structure; see README.md for a field-by-field guide.
+   ===================================================================================================== */
+`;
+    const $ = (s, el = document) => el.querySelector(s);
+    const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const D = JSON.parse(JSON.stringify(window.PORTFOLIO || { profile: {}, events: [], certifications: [] }));
+    D.events ||= []; D.certifications ||= [];
+    const pending = new Map();      // path -> Blob (new photos / files waiting to be written)
+    const previews = new Map();     // path -> object URL for pending blobs
+    let tab = "events", sel = null, dirHandle = null, dirty = false;
+
+    const toast = (msg, err) => { const t = $("#toast"); t.textContent = msg; t.className = "on" + (err ? " err" : ""); clearTimeout(toast.t); toast.t = setTimeout(() => (t.className = ""), err ? 6000 : 3200); };
+    const setDirty = (v = true) => { dirty = v; const s = $("#state"); s.textContent = v ? "Unsaved changes" : "All changes saved"; s.className = "state" + (v ? " dirty" : ""); };
+    window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+    const slugify = (s) => String(s).toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    const csv = (s) => String(s).split(",").map((x) => x.trim()).filter(Boolean);
+
+    /* ---------- list ---------- */
+    function renderList() {
+      const L = $("#list");
+      if (tab === "events") {
+        const evs = [...D.events].sort((a, b) => String(b.start).localeCompare(String(a.start)));
+        L.innerHTML = evs.map((e) => `<button type="button" class="item ${e === sel ? "on" : ""}" data-i="${D.events.indexOf(e)}"><b>${esc(e.name)} ${esc(e.edition || "")}</b><small>${esc(e.start || "")} &middot; ${esc(e.city || "")}</small></button>`).join("") + '<button type="button" class="primary item" id="addItem">+ New event</button>';
+      } else {
+        L.innerHTML = D.certifications.map((c, i) => `<button type="button" class="item ${c === sel ? "on" : ""}" data-i="${i}"><b>${esc(c.title)}</b><small>${esc(c.type || "")} &middot; ${esc(c.date || "")}</small></button>`).join("") + '<button type="button" class="primary item" id="addItem">+ New certificate</button>';
+      }
+    }
+
+    /* ---------- editors ---------- */
+    const field = (label, key, val, o = {}) => `<label class="${o.wide ? "wide" : ""}">${label}${o.area ? `<textarea data-k="${key}" ${o.ph ? `placeholder="${esc(o.ph)}"` : ""}>${esc(val)}</textarea>` : `<input data-k="${key}" type="${o.type || "text"}" value="${esc(val)}" ${o.ro ? "readonly" : ""} ${o.ph ? `placeholder="${esc(o.ph)}"` : ""}>`}</label>`;
+
+    function renderEvent(e) {
+      const isNew = !!e.__new;
+      $("#editor").innerHTML = `
+        <h2>${isNew ? "New event" : esc(e.name) + " " + esc(e.edition || "")}</h2>
+        <p class="hint">Everything here appears on the home page list and on this event's own page.${isNew ? "" : ` <a href="event.html?e=${encodeURIComponent(e.slug)}" target="_blank" rel="noopener">Open this event page</a>`}</p>
+        <div class="grid">
+          ${field("Event name", "name", e.name || "", { ph: "e.g. Sunchang Open" })}
+          ${field("Edition / year", "edition", e.edition || "", { ph: "e.g. 2026" })}
+          ${field("Page id (web address)", "slug", e.slug || "", { ro: !isNew, ph: "made from name + edition" })}
+          ${field("Start date", "start", e.start || "", { type: "date" })}
+          ${field("End date", "end", e.end || "", { type: "date" })}
+          ${field("Date label (optional)", "dateLabel", e.dateLabel || "", { ph: "only if exact dates unknown, e.g. September 2026" })}
+          ${field("Venue", "venue", e.venue || "")}
+          ${field("City", "city", e.city || "")}
+          ${field("Country", "country", e.country || "")}
+          ${field("Your role", "role", e.role || "", { ph: "Captain, Pakistan National Soft Tennis Team" })}
+          ${field("Result", "result", e.result || "", { ph: "e.g. 3rd place (leave empty if none)" })}
+          ${field("Level", "level", e.level || "", { ph: "e.g. International cup" })}
+          ${field("One-line summary", "summary", e.summary || "", { wide: true })}
+          ${field("The story (one paragraph per blank line)", "story", (e.story || []).join("\n\n"), { wide: true, area: true })}
+          ${field("Quote (optional)", "quote", e.quote || "", { wide: true })}
+          ${field("Events played (comma separated)", "formats", (e.formats || []).join(", "), { wide: true, ph: "Men's singles, Men's doubles, Mixed doubles" })}
+          ${field("Nations met (comma separated)", "nations", (e.nations || []).join(", "), { wide: true, ph: "India, China, Korea" })}
+        </div>
+
+        <h3>Fixtures</h3>
+        <p class="hint">One row per event played. List only the nations faced; individual players' names are left off on purpose.</p>
+        <div class="rows" id="fixtures">${(e.fixtures || []).map((f, i) => `
+          <div class="fx" data-fi="${i}">
+            <label>Event<input data-f="format" value="${esc(f.format)}"></label>
+            <label>Opponents from (comma separated)<input data-f="vs" value="${esc((f.vs || []).join(", "))}"></label>
+            <label>Note<input data-f="note" value="${esc(f.note || "")}"></label>
+            <button type="button" class="danger" data-act="rm-fx" title="Remove">&times;</button>
+          </div>`).join("")}</div>
+        <p><button type="button" data-act="add-fx">+ Add fixture</button></p>
+
+        <h3>Photos</h3>
+        <p class="hint">The first photo you mark as <b>cover</b> is the large image at the top of the event page and the thumbnail in the list. Photos are resized and stripped of location data automatically.</p>
+        <div class="photos" id="photos">${(e.photos || []).map((p, i) => {
+          const name = p.src.split("/").pop();
+          return `<div class="ph" data-pi="${i}">
+            <img src="${esc(previews.get(p.src) || p.src)}" alt="">
+            <div>
+              <input data-p="caption" value="${esc(p.caption || "")}" placeholder="Caption">
+              <div class="row">
+                <button type="button" data-act="p-up">&uarr;</button><button type="button" data-act="p-down">&darr;</button>
+                <button type="button" data-act="p-cover" class="${e.cover === name ? "primary" : ""}">${e.cover === name ? "Cover" : "Make cover"}</button>
+                <button type="button" class="danger" data-act="p-rm">Remove</button>
+              </div>
+              ${pending.has(p.src) ? '<span class="new">New, not saved yet</span>' : ""}
+            </div></div>`; }).join("")}</div>
+        <p><label>Add photos<input type="file" id="addPhotos" accept="image/*" multiple></label></p>
+
+        <h3>Danger zone</h3>
+        <p><button type="button" class="danger" data-act="rm-event">Delete this event</button> <span class="hint">Removes it from the site. Its photo files stay in the images folder.</span></p>`;
+    }
+
+    function renderCert(c) {
+      const evs = [...D.events].sort((a, b) => String(b.start).localeCompare(String(a.start)));
+      $("#editor").innerHTML = `
+        <h2>${c.__new ? "New certificate" : esc(c.title)}</h2>
+        <p class="hint">Shown in the Certificates section. Add a scan or photo of the certificate, and/or a PDF.</p>
+        <div class="grid">
+          ${field("Title", "title", c.title || "", { ph: "e.g. Korea Cup 2026 certificate" })}
+          <label>Type<select data-k="type">${["Certificate", "Medal", "Award", "Letter", "Training certificate"].map((t) => `<option ${c.type === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+          ${field("Issued by", "issuer", c.issuer || "")}
+          ${field("Date", "date", c.date || "", { ph: "e.g. June 2026" })}
+          <label>Related event<select data-k="event"><option value="">(none)</option>${evs.map((e) => `<option value="${esc(e.slug)}" ${c.event === e.slug ? "selected" : ""}>${esc(e.name)} ${esc(e.edition || "")}</option>`).join("")}</select></label>
+          ${field("Description", "description", c.description || "", { wide: true, area: true })}
+        </div>
+        <h3>Files</h3>
+        <div class="grid">
+          <div>${c.image ? `<p class="hint">Current image:</p><img src="${esc(previews.get(c.image) || c.image)}" alt="" style="max-width:100%;max-height:200px;border-radius:12px">` : '<p class="hint">No image yet.</p>'}
+            <label>Certificate image (JPG / PNG)<input type="file" id="certImg" accept="image/*"></label></div>
+          <div>${c.file ? `<p class="hint">Current PDF: ${esc(c.file)}</p>` : '<p class="hint">No PDF yet.</p>'}
+            <label>Certificate PDF (optional)<input type="file" id="certPdf" accept="application/pdf"></label></div>
+        </div>
+        <h3>Danger zone</h3>
+        <p><button type="button" class="danger" data-act="rm-cert">Delete this certificate</button></p>`;
+    }
+
+    function renderEditor() {
+      if (!sel) { $("#editor").innerHTML = `<h2>Welcome</h2>
+        <div class="banner"><b>How this works.</b> Pick an event or certificate on the left (or add a new one), fill in the form, then press <b>Save to project folder</b> and choose the website folder (the one containing <code>index.html</code>). Photos are resized and written into <code>images/</code> and the data file is updated. Reload the site to see the result. Use <b>Chrome or Edge</b> for one-click saving; other browsers can use <b>Download portfolio.js</b>.</div>
+        <p class="hint">${D.events.length} events &middot; ${D.certifications.length} certificates</p>`; return; }
+      tab === "events" ? renderEvent(sel) : renderCert(sel);
+    }
+    const refresh = () => { renderList(); renderEditor(); };
+
+    /* ---------- photos: resize in the browser (this also removes EXIF / GPS data) ---------- */
+    async function toJpeg(file, max, q = 0.76) {
+      const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+      const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
+      const w = Math.max(1, Math.round(bmp.width * s)), h = Math.max(1, Math.round(bmp.height * s));
+      const c = document.createElement("canvas"); c.width = w; c.height = h;
+      const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h); ctx.drawImage(bmp, 0, 0, w, h);
+      const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", q));
+      return { blob, w, h };
+    }
+    const nextIndex = (e) => 1 + Math.max(0, ...(e.photos || []).map((p) => parseInt(p.src.split("/").pop(), 10) || 0));
+
+    /* ---------- events ---------- */
+    document.addEventListener("input", (ev) => {
+      const el = ev.target; if (!sel) return;
+      if (el.dataset.k) {
+        const k = el.dataset.k, v = el.value;
+        if (["formats", "nations"].includes(k)) sel[k] = csv(v);
+        else if (k === "story") sel.story = v.split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean);
+        else sel[k] = v.trim() === "" && !["name", "title"].includes(k) ? "" : v;
+        if (tab === "events" && sel.__new && (k === "name" || k === "edition")) { sel.slug = slugify((sel.name || "") + " " + (sel.edition || "")); const s = $('[data-k="slug"]'); if (s) s.value = sel.slug; }
+        setDirty(); renderList();
+      } else if (el.dataset.f) {
+        const i = +el.closest("[data-fi]").dataset.fi, f = sel.fixtures[i];
+        f[el.dataset.f] = el.dataset.f === "vs" ? csv(el.value) : el.value; setDirty();
+      } else if (el.dataset.p) {
+        sel.photos[+el.closest("[data-pi]").dataset.pi].caption = el.value; setDirty();
+      }
+    });
+    document.addEventListener("change", async (ev) => {
+      const el = ev.target; if (!sel) return;
+      try {
+        if (el.dataset.k && el.tagName === "SELECT") { sel[el.dataset.k] = el.value; setDirty(); }
+        if (el.id === "addPhotos") {
+          let n = nextIndex(sel), added = 0;
+          for (const file of el.files) {
+            try {
+              const { blob, w, h } = await toJpeg(file, 1200);
+              const src = `images/events/${sel.slug}/${String(n++).padStart(2, "0")}.jpg`;
+              pending.set(src, blob); previews.set(src, URL.createObjectURL(blob));
+              (sel.photos ||= []).push({ src, w, h, caption: "" });
+              if (!sel.cover) sel.cover = src.split("/").pop();
+              added++;
+            } catch { toast(`"${file.name}" can't be read by this browser (HEIC?). Convert it to JPG first.`, true); }
+          }
+          if (added) { setDirty(); refresh(); }
+        }
+        if (el.id === "certImg" && el.files[0]) {
+          const id = slugify(sel.title || "certificate") || "certificate";
+          const { blob } = await toJpeg(el.files[0], 1600, 0.82);
+          const src = `images/certificates/${id}.jpg`; pending.set(src, blob); previews.set(src, URL.createObjectURL(blob));
+          sel.image = src; sel.id = sel.id || id; setDirty(); refresh();
+        }
+        if (el.id === "certPdf" && el.files[0]) {
+          const id = slugify(sel.title || "certificate") || "certificate";
+          const src = `files/${id}.pdf`; pending.set(src, el.files[0]); sel.file = src; setDirty(); refresh();
+        }
+      } catch (err) { console.error(err); toast("Could not process that file: " + err.message, true); }
+    });
+
+    document.addEventListener("click", (ev) => {
+      const t = ev.target.closest("button"); if (!t) return;
+      if (t.dataset.tab) { tab = t.dataset.tab; sel = null; document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("on", b === t)); return refresh(); }
+      if (t.id === "addItem") {
+        if (tab === "events") { sel = { __new: true, name: "", edition: "", slug: "", start: "", end: "", venue: "", city: "", country: "", role: "Captain, Pakistan National Soft Tennis Team", level: "", summary: "", story: [], quote: "", formats: [], fixtures: [], nations: [], photos: [] }; D.events.push(sel); }
+        else { sel = { __new: true, title: "", type: "Certificate", issuer: "", date: "", description: "" }; D.certifications.push(sel); }
+        setDirty(); return refresh();
+      }
+      if (t.classList.contains("item") && t.dataset.i !== undefined) { sel = (tab === "events" ? D.events : D.certifications)[+t.dataset.i]; return refresh(); }
+      const act = t.dataset.act; if (!act || !sel) return;
+      const pi = t.closest("[data-pi]") ? +t.closest("[data-pi]").dataset.pi : -1;
+      if (act === "add-fx") (sel.fixtures ||= []).push({ format: "", vs: [] });
+      else if (act === "rm-fx") sel.fixtures.splice(+t.closest("[data-fi]").dataset.fi, 1);
+      else if (act === "p-up" && pi > 0) [sel.photos[pi - 1], sel.photos[pi]] = [sel.photos[pi], sel.photos[pi - 1]];
+      else if (act === "p-down" && pi < sel.photos.length - 1) [sel.photos[pi + 1], sel.photos[pi]] = [sel.photos[pi], sel.photos[pi + 1]];
+      else if (act === "p-cover") sel.cover = sel.photos[pi].src.split("/").pop();
+      else if (act === "p-rm") { const [p] = sel.photos.splice(pi, 1); pending.delete(p.src); if (sel.cover === p.src.split("/").pop()) sel.cover = sel.photos[0] ? sel.photos[0].src.split("/").pop() : ""; }
+      else if (act === "rm-event" && confirm(`Delete "${sel.name}" from the site?`)) { D.events.splice(D.events.indexOf(sel), 1); sel = null; }
+      else if (act === "rm-cert" && confirm(`Delete "${sel.title}"?`)) { D.certifications.splice(D.certifications.indexOf(sel), 1); sel = null; }
+      setDirty(); refresh();
+    });
+
+    /* ---------- output ---------- */
+    function validate() {
+      const slugs = new Set();
+      for (const e of D.events) {
+        const who = `Event "${e.name || "(no name)"}"`;
+        if (!e.name) return `${who}: the event name is required.`;
+        if (!e.slug || !/^[a-z0-9-]+$/.test(e.slug)) return `${who}: the page id must be lowercase letters, numbers and dashes.`;
+        if (slugs.has(e.slug)) return `${who}: another event already uses the page id "${e.slug}". Change the edition or name.`;
+        slugs.add(e.slug);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(e.start || "")) return `${who}: the start date is required.`;
+        if (e.end && e.end < e.start) return `${who}: the end date is before the start date.`;
+        if (!e.country) return `${who}: the country is required.`;
+        if (e.cover && !(e.photos || []).some((p) => p.src.endsWith("/" + e.cover))) e.cover = (e.photos[0] || {}).src ? e.photos[0].src.split("/").pop() : "";
+      }
+      for (const c of D.certifications) if (!c.title) return "A certificate has no title.";
+      return null;
+    }
+    function build() {
+      const out = JSON.parse(JSON.stringify(D, (k, v) => (k === "__new" ? undefined : v)));
+      out.events.forEach((e) => { ["end", "dateLabel", "result", "quote", "summary", "level"].forEach((k) => { if (e[k] === "") delete e[k]; }); (e.fixtures || []).forEach((f) => { if (!f.note) delete f.note; }); if (!e.cover) delete e.cover; });
+      out.certifications.forEach((c) => { c.id = c.id || slugify(c.title); ["issuer", "date", "event", "description", "image", "file"].forEach((k) => { if (!c[k]) delete c[k]; }); });
+      return HEADER + "window.PORTFOLIO = " + JSON.stringify(out, null, 2) + ";\n";
+    }
+    window.__admin = { build, validate, D };   // used by automated tests
+
+    $("#btnDownload").addEventListener("click", () => {
+      const err = validate(); if (err) return toast(err, true);
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([build()], { type: "text/javascript" })); a.download = "portfolio.js"; a.click();
+      toast("Downloaded. Replace data/portfolio.js with it. New photos must be copied into images/ by hand.");
+    });
+
+    async function writeFile(root, path, blob) {
+      const parts = path.split("/"); let d = root;
+      for (const p of parts.slice(0, -1)) d = await d.getDirectoryHandle(p, { create: true });
+      const fh = await d.getFileHandle(parts.at(-1), { create: true });
+      const w = await fh.createWritable(); await w.write(blob); await w.close();
+    }
+    $("#btnSave").addEventListener("click", async () => {
+      const err = validate(); if (err) return toast(err, true);
+      if (!window.showDirectoryPicker) return toast("This browser cannot save into folders. Use Chrome or Edge, or press Download portfolio.js.", true);
+      try {
+        if (!dirHandle) dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+        if (/^instagram-/i.test(dirHandle.name)) { dirHandle = null; return toast("That is the Instagram data export, not the website. Pick the folder that contains index.html.", true); }
+        try { await dirHandle.getFileHandle("index.html"); } catch { dirHandle = null; return toast("That folder has no index.html. Pick the website folder.", true); }
+        let n = 0;
+        for (const [path, blob] of pending) { await writeFile(dirHandle, path, blob); n++; }
+        await writeFile(dirHandle, "data/portfolio.js", new Blob([build()], { type: "text/javascript" }));
+        pending.clear(); D.events.concat(D.certifications).forEach((x) => delete x.__new);
+        setDirty(false); refresh();
+        toast(`Saved: data/portfolio.js${n ? ` and ${n} file${n > 1 ? "s" : ""}` : ""}. Reload the site to see it.`);
+      } catch (e) { if (e.name !== "AbortError") { console.error(e); toast("Could not save: " + e.message, true); } }
+    });
+
+    refresh(); setDirty(false); $("#state").textContent = "No changes";
+  })();
+  </script>
+</body>
+</html>

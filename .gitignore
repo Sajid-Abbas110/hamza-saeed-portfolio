@@ -1,0 +1,4 @@
+# The Instagram "Download your information" export is PRIVATE data (messages, account info). Never commit it.
+instagram-*/
+instagram_*/
+*.zip
